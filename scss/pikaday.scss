@@ -149,6 +149,7 @@ $pd-font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 
 .pika-select {
     display: inline-block;
+    direction: rtl;
     *display: inline;
 }
 
@@ -191,7 +192,7 @@ $pd-font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !default;
     color: $pd-day-color;
     font-size: 12px;
     line-height: 15px;
-    text-align: right;
+    text-align: center;
     background: $pd-day-bg;
 
     .is-today & {
@@ -256,8 +257,15 @@ $pd-font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 
 .pika-time-container {
     clear: both;
+    border-top: 2px solid $pd-text-color;
 }
 
 .pika-time {
     margin: 7px auto 7px;
+    font-size: 20px;
+}
+
+.meridiem {
+    font-size: 16px;
+    padding-left: 4px;
 }

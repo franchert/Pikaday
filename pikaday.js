@@ -479,13 +479,14 @@
 
     renderTime = function(hh, mm, ss, opts)
     {
+        var meridiem = hh<12 ? ' AM' : ' PM';
         var to_return = '<table cellpadding="0" cellspacing="0" class="pika-time"><tbody><tr>' +
             (opts.timeLabel !== null ? '<td class="pika-time-label">'+opts.timeLabel+'</td>' : '') +
             renderTimePicker(24, hh, 'pika-select-hour', function(i) {
                 if (opts.use24hour) {
                     return i;
                 } else {
-                    var to_return = (i%12) + (i<12 ? ' AM' : ' PM');
+                    var to_return = (i%12);
                     if (to_return == '0 AM') {
                         return opts.i18n.midnight;
                     } else if (to_return == '0 PM') {
@@ -505,6 +506,9 @@
         if (opts.showSeconds) {
             to_return += '<td>:</td>' +
                 renderTimePicker(60, ss, 'pika-select-second', function(i) { if (i < 10) return "0" + i; return i }, opts.incrementSecondBy);
+        }
+        if (!opts.use24hour) {
+            to_return += '<td class="meridiem"> ' + meridiem + '</td>';
         }
         return to_return + '</tr></tbody></table>';
     },
