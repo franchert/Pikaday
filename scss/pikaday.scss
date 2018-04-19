@@ -258,6 +258,11 @@ $pd-font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 .pika-time-container {
     clear: both;
     border-top: 2px solid $pd-text-color;
+    .pika-time{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 }
 
 .pika-time {

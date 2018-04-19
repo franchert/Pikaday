@@ -469,28 +469,26 @@
 
     renderTimePicker = function(num_options, selected_val, select_class, display_func, increment_by) {
         increment_by = increment_by || 1;
-        var to_return = '<td><select class="pika-select '+select_class+'">';
+        var to_return = '<span><select class="pika-select '+select_class+'">';
         for (var i = 0; i < num_options; i += increment_by) {
             to_return += '<option value="'+i+'" '+(i==selected_val ? 'selected' : '')+'>'+display_func(i)+'</option>'
         }
-        to_return += '</select></td>';
+        to_return += '</select></span>';
         return to_return;
     },
 
     renderTime = function(hh, mm, ss, opts)
     {
         var meridiem = hh<12 ? ' AM' : ' PM';
-        var to_return = '<table cellpadding="0" cellspacing="0" class="pika-time"><tbody><tr>' +
-            (opts.timeLabel !== null ? '<td class="pika-time-label">'+opts.timeLabel+'</td>' : '') +
+        var to_return = '<div cellpadding="0" cellspacing="0" class="pika-time">' +
+            (opts.timeLabel !== null ? '<span class="pika-time-label">'+opts.timeLabel+'</span>' : '') +
             renderTimePicker(24, hh, 'pika-select-hour', function(i) {
                 if (opts.use24hour) {
                     return i;
                 } else {
                     var to_return = (i%12);
-                    if (to_return == '0 AM') {
-                        return opts.i18n.midnight;
-                    } else if (to_return == '0 PM') {
-                        return opts.i18n.noon;
+                    if (to_return == '0') {
+                        return to_return + 12;
                     } else {
                         return to_return;
                     }
@@ -499,18 +497,18 @@
             opts.incrementHourBy);
 
         if (opts.showMinutes) {
-          to_return += '<td>:</td>' +
+          to_return += '<span>:</span>' +
               renderTimePicker(60, mm, 'pika-select-minute', function(i) { if (i < 10) return "0" + i; return i }, opts.incrementMinuteBy);
         }
 
         if (opts.showSeconds) {
-            to_return += '<td>:</td>' +
+            to_return += '<span>:</span>' +
                 renderTimePicker(60, ss, 'pika-select-second', function(i) { if (i < 10) return "0" + i; return i }, opts.incrementSecondBy);
         }
         if (!opts.use24hour) {
-            to_return += '<td class="meridiem"> ' + meridiem + '</td>';
+            to_return += '<span class="meridiem"> ' + meridiem + '</span>';
         }
-        return to_return + '</tr></tbody></table>';
+        return to_return + '</div>';
     },
 
 
