@@ -469,44 +469,44 @@
 
     renderTimePicker = function(num_options, selected_val, select_class, display_func, increment_by) {
         increment_by = increment_by || 1;
-        var to_return = '<span><select class="pika-select '+select_class+'">';
-        for (var i = 0; i < num_options; i += increment_by) {
-            to_return += '<option value="'+i+'" '+(i==selected_val ? 'selected' : '')+'>'+display_func(i)+'</option>'
-        }
-        to_return += '</select></span>';
+        var to_return = '<span><input class="pika-select '+select_class+'" value="'+selected_val+'"></input></span>';
         return to_return;
     },
 
     renderTime = function(hh, mm, ss, opts)
     {
-        var meridiem = hh<12 ? ' AM' : ' PM';
+        var displayHours = hh;
+        if (hh > 12) {
+            displayHours = hh % 12;
+        } else if(hh === 0) {
+            displayHours = 12;
+        }
         var to_return = '<div cellpadding="0" cellspacing="0" class="pika-time">' +
             (opts.timeLabel !== null ? '<span class="pika-time-label">'+opts.timeLabel+'</span>' : '') +
-            renderTimePicker(24, hh, 'pika-select-hour', function(i) {
-                if (opts.use24hour) {
-                    return i;
-                } else {
-                    var to_return = (i%12);
-                    if (to_return == '0') {
-                        return to_return + 12;
-                    } else {
-                        return to_return;
-                    }
-                }
-            },
-            opts.incrementHourBy);
+            '<span><input class="pika-select pika-select-hour" value="'+displayHours+'"></input></span>';
 
         if (opts.showMinutes) {
-          to_return += '<span>:</span>' +
-              renderTimePicker(60, mm, 'pika-select-minute', function(i) { if (i < 10) return "0" + i; return i }, opts.incrementMinuteBy);
+          to_return += '<span>:</span><span><input class="pika-select pika-select-minute" value="'+mm+'"></input></span>';
         }
 
         if (opts.showSeconds) {
-            to_return += '<span>:</span>' +
-                renderTimePicker(60, ss, 'pika-select-second', function(i) { if (i < 10) return "0" + i; return i }, opts.incrementSecondBy);
+          to_return += '<span><input class="pika-select pika-select-second" value="'+ss+'"></input></span>';
         }
         if (!opts.use24hour) {
-            to_return += '<span class="meridiem"> ' + meridiem + '</span>';
+            var meridem = hh > 12 ? 'pm' : 'am';
+            var meridemOptions = [
+                'am',
+                'pm'
+            ];
+            to_return += '<span class="meridiem"><select class="pika-select pika-select-meridem">';
+            for (var i = meridemOptions.length - 1; i >= 0; i--) {
+                to_return += '<option value="'+meridemOptions[i]+ '"';
+                if(meridem === meridemOptions[i]) {
+                    to_return += ' selected';
+                } 
+                to_return += '>'+meridemOptions[i]+'</option>';
+            };
+            to_return += '</select></span>';
         }
         return to_return + '</div>';
     },
@@ -594,13 +594,33 @@
                 self.gotoYear(target.value);
             }
             else if (hasClass(target, 'pika-select-hour')) {
-                self.setTime(target.value);
+                if(target.value > 12) {
+                    target.value = 12;
+                }
+                if(target.value < 1) {
+                    target.value = 1;
+                }
+                var updateHours = self.getDate().getHours();
+                if(updateHours > 12) {
+                    self.setTime(target.value - 12);
+                } else {
+                    self.setTime(target.value);
+                }
             }
             else if (hasClass(target, 'pika-select-minute')) {
+                if(target.value > 59) {
+                    target.value = 59;
+                }
+                if(target.value < 0) {
+                    target.value = 0;
+                }
                 self.setTime(null, target.value);
             }
             else if (hasClass(target, 'pika-select-second')) {
                 self.setTime(null, null, target.value);
+            }
+            else if (hasClass(target, 'pika-select-meridem')) {
+                self.setTime(null, null, null, target.value);
             }
         };
 
@@ -616,19 +636,6 @@
                         if (opts.field) {
                             opts.field.blur();
                         }
-                        break;
-                    case 37:
-                        e.preventDefault();
-                        self.adjustDate('subtract', 1);
-                        break;
-                    case 38:
-                        self.adjustDate('subtract', 7);
-                        break;
-                    case 39:
-                        self.adjustDate('add', 1);
-                        break;
-                    case 40:
-                        self.adjustDate('add', 7);
                         break;
                 }
             }
@@ -697,10 +704,10 @@
                 return;
             }
             if (!hasEventListeners && hasClass(target, 'pika-select')) {
-                if (!target.onchange) {
-                    target.setAttribute('onchange', 'return;');
-                    addEvent(target, 'change', self._onChange);
-                }
+                // if (!target.onchange) {
+                //     target.setAttribute('onchange', 'return;');
+                //     addEvent(target, 'change', self._onChange);
+                // }
             }
             do {
                 if (hasClass(pEl, 'pika-single') ||
@@ -897,19 +904,34 @@
          * set time components
          * Currently defaulting to setting date to today if not set
          */
-        setTime: function(hours, minutes, seconds) {
+        setTime: function(hours, minutes, seconds, meridem) {
             if (!this._d) {
                 this._d = new Date();
                 this._d.setHours(0,0,0,0);
             }
             if (hours) {
-                this._d.setHours(hours);
+                var updateHours = this.getDate().getHours();
+                console.log(hours, updateHours);
+                if (updateHours > 12) {
+                    this._d.setHours(hours + 12);
+                } else {
+                    this._d.setHours(hours);
+                }
             }
             if (minutes) {
                 this._d.setMinutes(minutes);
             }
             if (seconds) {
                 this._d.setSeconds(seconds);
+            }
+            if (meridem) {
+                var updateHours = this.getDate().getHours();
+                console.log(meridem, updateHours);
+                if (meridem === "pm") {
+                    this._d.setHours(updateHours + 12);
+                } else {
+                    this._d.setHours(updateHours - 12);
+                }
             }
             this.setDate(this._d);
         },
