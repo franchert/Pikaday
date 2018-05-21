@@ -3,7 +3,7 @@
  *
  * Copyright © 2014 David Bushell | BSD & MIT license | https://github.com/dbushell/Pikaday
  */
-
+/* eslint-disable */
 (function (root, factory)
 {
     'use strict';
@@ -275,7 +275,7 @@
         timeLabel: null,
 
         // option to prevent calendar from auto-closing after date is selected
-        autoClose: true,
+        autoClose: false,
 
         // when numberOfMonths is used, this will help you to choose where the main calendar will be (default `left`, can be set to `right`)
         // only used for the first display or when a selected date is not visible
@@ -467,33 +467,31 @@
         return '<table cellpadding="0" cellspacing="0" class="pika-table" role="grid" aria-labelledby="' + randId + '">' + renderHead(opts) + renderBody(data) + '</table>';
     },
 
-    renderTimePicker = function(num_options, selected_val, select_class, display_func, increment_by) {
-        increment_by = increment_by || 1;
-        var to_return = '<span><input class="pika-select '+select_class+'" value="'+selected_val+'"></input></span>';
-        return to_return;
-    },
-
-    renderTime = function(hh, mm, ss, opts)
+    renderTime = function(hh, mm, ss, isPM, opts)
     {
         var displayHours = hh;
-        if (hh > 12) {
+        if (parseInt(hh) > 12) {
             displayHours = hh % 12;
-        } else if(hh === 0) {
+        } else if(parseInt(hh) === 0) {
             displayHours = 12;
         }
         var to_return = '<div cellpadding="0" cellspacing="0" class="pika-time">' +
             (opts.timeLabel !== null ? '<span class="pika-time-label">'+opts.timeLabel+'</span>' : '') +
             '<span><input class="pika-select pika-select-hour" value="'+displayHours+'"></input></span>';
 
+        var displayMinutes = mm;
+        if (parseInt(mm) < 10) {
+            displayMinutes = "0" + mm;
+        }
         if (opts.showMinutes) {
-          to_return += '<span>:</span><span><input class="pika-select pika-select-minute" value="'+mm+'"></input></span>';
+          to_return += '<span>:</span><span><input class="pika-select pika-select-minute" value="'+displayMinutes+'"></input></span>';
         }
 
         if (opts.showSeconds) {
           to_return += '<span><input class="pika-select pika-select-second" value="'+ss+'"></input></span>';
         }
         if (!opts.use24hour) {
-            var meridem = hh > 12 ? 'pm' : 'am';
+            var meridemVal = isPM ? 'pm' : 'am';
             var meridemOptions = [
                 'am',
                 'pm'
@@ -501,7 +499,7 @@
             to_return += '<span class="meridiem"><select class="pika-select pika-select-meridem">';
             for (var i = meridemOptions.length - 1; i >= 0; i--) {
                 to_return += '<option value="'+meridemOptions[i]+ '"';
-                if(meridem === meridemOptions[i]) {
+                if(meridemVal === meridemOptions[i]) {
                     to_return += ' selected';
                 } 
                 to_return += '>'+meridemOptions[i]+'</option>';
@@ -594,27 +592,25 @@
                 self.gotoYear(target.value);
             }
             else if (hasClass(target, 'pika-select-hour')) {
-                if(target.value > 12) {
-                    target.value = 12;
+                var value = parseInt(target.value);
+                if(value > 12) {
+                    value = 12;
                 }
-                if(target.value < 1) {
-                    target.value = 1;
+                if(value < 1) {
+                    value = 1;
                 }
-                var updateHours = self.getDate().getHours();
-                if(updateHours > 12) {
-                    self.setTime(target.value - 12);
-                } else {
-                    self.setTime(target.value);
-                }
+                var isPM = self.getDate().getHours() > 12;
+                self.setTime(value);
             }
             else if (hasClass(target, 'pika-select-minute')) {
-                if(target.value > 59) {
-                    target.value = 59;
+                var value = parseInt(target.value);
+                if(value > 59) {
+                    value = 59;
                 }
-                if(target.value < 0) {
-                    target.value = 0;
+                if(value < 0) {
+                    value = 0;
                 }
-                self.setTime(null, target.value);
+                self.setTime(null, value);
             }
             else if (hasClass(target, 'pika-select-second')) {
                 self.setTime(null, null, target.value);
@@ -910,9 +906,8 @@
                 this._d.setHours(0,0,0,0);
             }
             if (hours) {
-                var updateHours = this.getDate().getHours();
-                console.log(hours, updateHours);
-                if (updateHours > 12) {
+                var oldHours = this.getDate().getHours();
+                if(oldHours > 12) {
                     this._d.setHours(hours + 12);
                 } else {
                     this._d.setHours(hours);
@@ -925,12 +920,12 @@
                 this._d.setSeconds(seconds);
             }
             if (meridem) {
-                var updateHours = this.getDate().getHours();
-                console.log(meridem, updateHours);
-                if (meridem === "pm") {
-                    this._d.setHours(updateHours + 12);
-                } else {
-                    this._d.setHours(updateHours - 12);
+                var isPM = meridem == "pm";
+                var oldHours = this.getDate().getHours();
+                if (isPM) {
+                    this._d.setHours(oldHours + 12);
+                } else {                   
+                    this._d.setHours(oldHours - 12);
                 }
             }
             this.setDate(this._d);
@@ -1179,6 +1174,7 @@
                             prevDate && isDate(prevDate) ? prevDate.getHours() : 0,
                             prevDate && isDate(prevDate) ? prevDate.getMinutes() : 0,
                             prevDate && isDate(prevDate) ? prevDate.getSeconds() : 0,
+                            prevDate && isDate(prevDate) ? prevDate.getHours() >= 12 : false,
                             opts)
                     + '</div>';
             }
