@@ -627,6 +627,7 @@
             if (self.isVisible()) {
 
                 switch(e.keyCode){
+                    console.log(e.keyCode);
                     case 13:
                     case 27:
                         if (opts.field) {
