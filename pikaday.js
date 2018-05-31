@@ -630,6 +630,7 @@
                     console.log(e.keyCode);
                     case 13:
                     case 27:
+		    case 9:
                         if (opts.field) {
                             opts.field.blur();
                         }
